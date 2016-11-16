@@ -28,7 +28,6 @@ def processInput(in_file):
 	return num_lines, horse_performance, horse_compatibilities
 
 
-
 def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
 	total = 0
