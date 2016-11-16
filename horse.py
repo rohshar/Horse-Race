@@ -27,7 +27,6 @@ def processInput(in_file):
 	#return the relevant information
 	return num_lines, horse_performance, horse_compatibilities
 
-
 def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
 	total = 0
@@ -54,7 +53,6 @@ def isTeamValid(team_indices, horse_compatibilities):
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
 	num_horses, horse_performance, horse_compatibilities = processInput(in_file)
-
 
 	#print(num_horses)
 	#print(horse_performance)
