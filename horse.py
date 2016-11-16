@@ -48,6 +48,7 @@ def teamLikelihood(team_indices, horse_performance):
 
 
 def isTeamValid(team_indices, horse_compatibilities):
+	i = 1 + 1
 	pass
 
 
