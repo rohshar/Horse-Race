@@ -28,6 +28,30 @@ def processInput(in_file):
 	return num_lines, horse_performance, horse_compatibilities
 
 
+
+def totalLikelihood(teams, horse_performance):
+	#calculate total likelihood of winning based on all teams created
+	total = 0
+	for team in teams:
+		total += teamLikelihood(team_indices, horse_performance)
+	return total
+
+
+def teamLikelihood(team_indices, horse_performance):
+	#calculate likelihood of individual team winning based on formula described in spec
+		#where team_indices contains the index of all of the horses that race with one 
+		#specific team
+	total = 0
+	for ti in team_indices:
+		total += horse_performance[ti]
+	scaled_total = total * len(team_indices)
+	return scaled_total
+
+
+def isTeamValid(team_indices, horse_compatibilities):
+	pass
+
+
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
 	num_horses, horse_performance, horse_compatibilities = processInput(in_file)
