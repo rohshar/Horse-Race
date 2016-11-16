@@ -54,22 +54,34 @@ def optimalHorseRacing(in_file):
 	#stores all of the horses that have already been place in a team
 	used_horses = []
 	for i in range(len(horse_compatibilities)):
+		#this variable keeps track of if a team is still being added to
+		is_valid = True
+		#keeps track of last horse added to a team
+		curr = i
 		#if horse already used go to next horse
-		if i in used_horses:
+		if curr in used_horses:
 			continue
 		#instantiate array to host all indices of horse in current team and add current
 			#horse to the team and used horses
 		team = []
-		team.append(i)
-		used_horses.append(i)
-		#check for the first horse it is compatible with and store it
-		for j in range(len(horse_compatibilities[i])):
-			if horse_compatibilities[i][j] == 1 and not j in used_horses:
-				team.append(j)
-				used_horses.append(j)
-				break
+		team.append(curr)
+		used_horses.append(curr)
+		while is_valid:
+			#check for the first horse it is compatible with and store it, and update
+				#the most recent horse
+			for j in range(len(horse_compatibilities[curr])):
+				if horse_compatibilities[curr][j] == 1 and not j in used_horses:
+					team.append(j)
+					used_horses.append(j)
+					curr = j
+					break
+				#if horse not compatible with any other horses, set is_valid to false
+					#so a new team can be created
+				elif j == len(horse_compatibilities[curr]) - 1:
+					is_valid = False
 		#append the team of horses to the list of teams
 		teams.append(team)
+		
 	print(teams)
 
 
