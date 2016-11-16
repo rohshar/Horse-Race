@@ -46,19 +46,31 @@ def teamLikelihood(team_indices, horse_performance):
 	return scaled_total
 
 
-def isTeamValid(team_indices, horse_compatibilities):
-	pass
-
-
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
 	num_horses, horse_performance, horse_compatibilities = processInput(in_file)
-
-	#print(num_horses)
-	#print(horse_performance)
-	#print(horse_compatibilities) 
-
-
+	#array stores all of the lists of horses in each team
+	teams = []
+	#stores all of the horses that have already been place in a team
+	used_horses = []
+	for i in range(len(horse_compatibilities)):
+		#if horse already used go to next horse
+		if i in used_horses:
+			continue
+		#instantiate array to host all indices of horse in current team and add current
+			#horse to the team and used horses
+		team = []
+		team.append(i)
+		used_horses.append(i)
+		#check for the first horse it is compatible with and store it
+		for j in range(len(horse_compatibilities[i])):
+			if horse_compatibilities[i][j] == 1 and not j in used_horses:
+				team.append(j)
+				used_horses.append(j)
+				break
+		#append the team of horses to the list of teams
+		teams.append(team)
+	print(teams)
 
 
 if __name__ == "__main__":
