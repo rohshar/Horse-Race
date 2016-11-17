@@ -40,14 +40,14 @@ def optimalHorseRacing(in_file):
 	horseIdx = set(range(horse_compatibilities.shape[0]))
 	# Indices of horses that are sources (no horses can go before)
 	sourceIdx = list(np.where(~horse_compatibilities.any(axis=0))[0])
-	# Horse indices to iterate over
+	# Rest of horse indices to iterate over
 	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
 
 	teams = []
-	used_horses = []
-	# Start each iteration with sources
+	# While there are still unassigned horses
 	while len(horseIdx) > 0:
 		team = []
+		# If there are sources, use them as starting point of path
 		if len(sourceIdx) > 0:
 			team.append(sourceIdx.pop())
 			curr = team[0]
@@ -55,6 +55,7 @@ def optimalHorseRacing(in_file):
 			team.append(horseIdx.popleft())
 			curr = team[0]
 		isValid = True
+		# Continue increasing team until a horse that can go after
 		while isValid:
 			for j in range(horse_compatibilities.shape[0]):
 				if horse_compatibilities[curr][j] == 1 and j in horseIdx:
