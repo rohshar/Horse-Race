@@ -55,7 +55,7 @@ def optimalHorseRacing(in_file):
 			team.append(horseIdx.popleft())
 			curr = team[0]
 		isValid = True
-		# Continue increasing team until a horse that can go after
+		# Continue increasing team until no horse can go after
 		while isValid:
 			for j in range(horse_compatibilities.shape[0]):
 				if horse_compatibilities[curr][j] == 1 and j in horseIdx:
