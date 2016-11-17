@@ -1,31 +1,18 @@
+import numpy as np
+import collections
+import copy
+
 def processInput(in_file):
-	with open(in_file, "r") as ifile:
-		#Get all of the lines in the file in a list
-		file_lines = ifile.read().splitlines()
-		#Figure out the total amount of horses
-		num_lines = file_lines[0]
-		#Array stores each horse's performace value corresponding to index
-		horse_compatibilities = []
-		#Array stores each horse's ability to run before any of the other horses
-			#corresponding to index. A horse's ability to run before itself is 0.
-			#If a horse i is willing to race before horse j, then horse_performace[i][j] = 1,
-			#otherwise 0
-		horse_performance = []
-		#Go through the matrix and store performances and compatibilities in their
-			#corresponding arrays after converting the numbers to integers
-		for i in range(0, int(num_lines)):
-			curr_line = file_lines[i + 1]
-			elements = curr_line.split(" ")
-			horse_performance.append(int(elements[i]))
-			elements[i] = '0'
-			for e in range(len(elements)):
-				if elements[e] == '0' or elements[e] == '1':
-					elements[e] = int(elements[e])
-				else:
-					elements.remove(elements[e])
-			horse_compatibilities.append(elements)
-	#return the relevant information
-	return num_lines, horse_performance, horse_compatibilities
+	# Read text file into matrix
+	horse_compatibilities = np.loadtxt(in_file, skiprows=1, dtype=int)
+
+	# Get diagonal values
+	horse_performance = copy.deepcopy(horse_compatibilities.diagonal())
+
+	# Set horse compatibilities, setting diagonal elements of mat to 0, in-place
+	np.fill_diagonal(horse_compatibilities, 0)
+
+	return horse_performance, horse_compatibilities
 
 def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
@@ -48,43 +35,40 @@ def teamLikelihood(team_indices, horse_performance):
 
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
-	num_horses, horse_performance, horse_compatibilities = processInput(in_file)
-	#array stores all of the lists of horses in each team
+	horse_performance, horse_compatibilities = processInput(in_file)
+
+	horseIdx = set(range(horse_compatibilities.shape[0]))
+	# Indices of horses that are sources (no horses can go before)
+	sourceIdx = list(np.where(~horse_compatibilities.any(axis=0))[0])
+	# Horse indices to iterate over
+	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
+
 	teams = []
-	#stores all of the horses that have already been place in a team
 	used_horses = []
-	for i in range(len(horse_compatibilities)):
-		#this variable keeps track of if a team is still being added to
-		is_valid = True
-		#keeps track of last horse added to a team
-		curr = i
-		#if horse already used go to next horse
-		if curr in used_horses:
-			continue
-		#instantiate array to host all indices of horse in current team and add current
-			#horse to the team and used horses
+	# Start each iteration with sources
+	while len(horseIdx) > 0:
 		team = []
-		team.append(curr)
-		used_horses.append(curr)
-		while is_valid:
-			#check for the first horse it is compatible with and store it, and update
-				#the most recent horse
-			for j in range(len(horse_compatibilities[curr])):
-				if horse_compatibilities[curr][j] == 1 and not j in used_horses:
+		if len(sourceIdx) > 0:
+			team.append(sourceIdx.pop())
+			curr = team[0]
+		else:
+			team.append(horseIdx.popleft())
+			curr = team[0]
+		isValid = True
+		while isValid:
+			for j in range(horse_compatibilities.shape[0]):
+				if horse_compatibilities[curr][j] == 1 and j in horseIdx:
 					team.append(j)
-					used_horses.append(j)
+					horseIdx.remove(j)
 					curr = j
 					break
-				#if horse not compatible with any other horses, set is_valid to false
-					#so a new team can be created
-				elif j == len(horse_compatibilities[curr]) - 1:
-					is_valid = False
-		#append the team of horses to the list of teams
+				elif j == horse_compatibilities.shape[0] - 1:
+					isValid = False
 		teams.append(team)
-		
 	print(teams)
+	return teams
 
 
 if __name__ == "__main__":
-	f = "sample1.in"
+	f = "sample2.in"
 	optimalHorseRacing(f)
