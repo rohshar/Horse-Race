@@ -48,7 +48,8 @@ def optimalHorseRacing(in_file):
 	horseIdx = set(range(horse_compatibilities.shape[0]))
 	# Find sources (no horses can go before them) by identifying columns with all zeros
 	sourceIdx = list(np.where(~horse_compatibilities.any(axis=0))[0])
-	# Take the complement of sources to be the rest of the horses
+	# Take the complement of sources to be the rest of the horses that are compatible
+		# with other horses
 	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
 
 	teams = []
