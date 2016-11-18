@@ -15,6 +15,12 @@ def processInput(in_file):
 
 	return horse_performance, horse_compatibilities
 
+def adjacencyMatrix(mat):
+	'''Turns matrix of compatibilities into adjacency matrix'''
+	adjMat = {}
+	for i in range(mat.shape[0]):
+		pass
+
 def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
 	total = 0
