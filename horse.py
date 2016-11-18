@@ -1,6 +1,7 @@
 import numpy as np
 import collections
 import copy
+import sys
 
 def processInput(in_file):
 	# Read text file into a 2d numpy array. First row skipped because matrix starts on second row
@@ -15,11 +16,24 @@ def processInput(in_file):
 
 	return horse_performance, horse_compatibilities
 
+def findSource(mat):
+	'''Returns set of sources from compatibility matrix'''
+	# Find sources (no horses can go before them) by identifying columns with all zeros
+	return set(np.where(~mat.any(axis=0))[0])
+
+def findSink(mat):
+	'''Returns set of sinks from compatibility matrix'''
+	# Find sinks (no horses can go after them) by identifying rows with all zeros
+	return set(np.where(~mat.any(axis=1))[0])
+
 def adjacencyMatrix(mat):
 	'''Turns matrix of compatibilities into adjacency matrix'''
 	adjMat = {}
+	# For each row in compatibility matrix
 	for i in range(mat.shape[0]):
-		pass
+		# Find j corresponding for where mat[i][j] = 1
+		adjMat[i] = np.where(mat[i] == 1)[0]
+	return adjMat
 
 def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
@@ -31,61 +45,90 @@ def totalLikelihood(teams, horse_performance):
 
 def teamLikelihood(team_indices, horse_performance):
 	#calculate likelihood of individual team winning based on formula described in spec
-		#where team_indices contains the index of all of the horses that race with one 
-		#specific team
+	#where team_indices contains the index of all of the horses that race with one 
+	#specific team
 	total = 0
 	for ti in team_indices:
 		total += horse_performance[ti]
 	scaled_total = total * len(team_indices)
 	return scaled_total
 
+def nextHorse(candidates, horse_performance):
+	'''Given candidates, find horse with best performance'''
+	nextHorse = None
+	bestPerformance = -float("inf")
+	for i in candidates:
+		if horse_performance[i] > bestPerformance:
+			bestPerformance = horse_performance[i]
+			nextHorse = i
+	return nextHorse
+
+def getValidCandidates(candidates, usedHorses):
+	return np.setdiff1d(candidates, usedHorses)
 
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
 	horse_performance, horse_compatibilities = processInput(in_file)
 
+	# Find source and sink IDs respectively
+	sourceIdx = findSource(horse_compatibilities)
+	sinkIdx = findSink(horse_compatibilities)
+
 	# Represent each horse by its index
-	horseIdx = set(range(horse_compatibilities.shape[0]))
-	# Find sources (no horses can go before them) by identifying columns with all zeros
-	sourceIdx = list(np.where(~horse_compatibilities.any(axis=0))[0])
-	# Take the complement of sources to be the rest of the horses that are compatible
-		# with other horses
+	horseIdx = set(range(len(horse_compatibilities)))
+
+	# Remove sinks from horseIdx
+	horseIdx = horseIdx.difference(sinkIdx)
+
+	# Remove sources from horseIdx	
 	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
 
+	# Convert horse_compatibilities to adjacency matrix
+	horse_compatibilities = adjacencyMatrix(horse_compatibilities)
+
 	teams = []
+	usedHorses = []
+	sourceIdx = list(sourceIdx)
+	sinkIdx = list(sinkIdx)
 	# While there are still unassigned horses left
-	while len(horseIdx) > 0:
+	while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
 		team = []
 		# If there are sources, use them as starting horse in the team. curr denotes current horse
 		if len(sourceIdx) > 0:
 			team.append(sourceIdx.pop())
 			curr = team[0]
 		# If there are no sources left, pick next available horse as the first horse to start in the team
-		else:
-			team.append(horseIdx.popleft())
+		elif len(horseIdx) > 0:
+			team.append(horseIdx.pop())
 			curr = team[0]
-		# isValid indicates whether there is a horse that can go after current horse
-		isValid = True
-		# Continue increasing team until no horse can go after current horse.
-		while isValid:
-			# Search for any horse that can go after current horse
-			for j in range(horse_compatibilities.shape[0]):
-				# If horse j can go after current horse, and horse j has not been assigned to a team already, 
-				# add horse j to the team
-				if horse_compatibilities[curr][j] == 1 and j in horseIdx:
-					# Once horse j is added, remove horse j from unassigned horses (horseIdx), and set horse j as current
-					team.append(j)
-					horseIdx.remove(j)
-					curr = j
-					break
-				# If no horse is available to run after current horse, set isValid to false to form the next team
-				elif j == horse_compatibilities.shape[0] - 1:
-					isValid = False
+		# If sinks are the only horses left, then form team with sinks
+		else:
+			team.append(sinkIdx.pop())
+			curr = team[0]
+		usedHorses.append(curr)
+		# Remove from consideration horses that have been used
+		candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
+		while len(candidates) > 0:
+			# If all horses that can go after curr is a sink, then pick sink with best performance
+			if np.all(np.in1d(candidates, sinkIdx)):
+				# curr is horse with best performance
+				curr = nextHorse(candidates, horse_performance)
+				sinkIdx.remove(curr)
+			# Else if there are still non-sinks left, pick horse with best performance
+			else:
+				# Remove sinks from consideration because non-sinks still left
+				candidates = np.setdiff1d(candidates, sinkIdx)
+				# curr is horse with best performance
+				curr = nextHorse(candidates, horse_performance)
+				horseIdx.remove(curr)
+			usedHorses.append(curr)
+			team.append(curr)
+			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
 		teams.append(team)
 	print(teams)
 	return teams
 
 
 if __name__ == "__main__":
-	f = "sample2.in"
+	f = "sample1.in"
 	optimalHorseRacing(f)
