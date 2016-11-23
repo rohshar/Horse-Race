@@ -2,6 +2,7 @@ import numpy as np
 import collections
 import copy
 import sys
+import os
 
 def processInput(in_file):
 	# Read text file into a 2d numpy array. First row skipped because matrix starts on second row
@@ -66,6 +67,22 @@ def nextHorse(candidates, horse_performance):
 def getValidCandidates(candidates, usedHorses):
 	return np.setdiff1d(candidates, usedHorses)
 
+
+def parseTeams(teams):
+	race_output = ""
+	for i in range(len(teams)):
+		for j in range(len(teams[i])):
+			if (j == len(teams[i]) - 1) and (i == len(teams) - 1):
+				race_output += str(teams[i][j])
+			elif j == len(teams[i]) - 1:
+				race_output += str(teams[i][j]) + "; "
+			else:	
+				race_output += str(teams[i][j]) + " "
+	#print(teams)
+	#print(race_output)
+	return race_output
+
+
 def optimalHorseRacing(in_file):
 	#call helper function to get relevant information in accessible format
 	horse_performance, horse_compatibilities = processInput(in_file)
@@ -125,10 +142,17 @@ def optimalHorseRacing(in_file):
 			team.append(curr)
 			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
 		teams.append(team)
-	print(teams)
-	return teams
+	return parseTeams(teams)
 
 
 if __name__ == "__main__":
-	f = "sample1.in"
-	optimalHorseRacing(f)
+	with open("answers.out", "r+") as ofile:
+		#files = os.listdir("cs170_final_inputs")
+		files = os.listdir("sample_checker")
+		for f in files:
+			#team_rep = optimalHorseRacing("cs170_final_inputs/" + f)
+			team_rep = optimalHorseRacing("sample_checker/" + f)
+			ofile.write(team_rep + "\n")
+
+	#f = "sample1.in"
+	#print(optimalHorseRacing(f))
