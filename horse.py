@@ -78,8 +78,6 @@ def parseTeams(teams):
 				race_output += str(teams[i][j]) + "; "
 			else:	
 				race_output += str(teams[i][j]) + " "
-	#print(teams)
-	#print(race_output)
 	return race_output
 
 
@@ -147,8 +145,10 @@ def optimalHorseRacing(in_file):
 
 if __name__ == "__main__":
 	with open("answers.out", "r+") as ofile:
+		ofile.truncate()
 		#files = os.listdir("cs170_final_inputs")
-		files = os.listdir("sample_checker")
+		all_files = next(os.walk('sample_checker'))[2]
+		files = [f for f in all_files if not f.startswith('.')]
 		for f in files:
 			#team_rep = optimalHorseRacing("cs170_final_inputs/" + f)
 			team_rep = optimalHorseRacing("sample_checker/" + f)
