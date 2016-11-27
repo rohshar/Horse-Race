@@ -3,6 +3,7 @@ import collections
 import copy
 import sys
 import os
+import math
 
 def processInput(in_file):
 	# Read text file into a 2d numpy array. First row skipped because matrix starts on second row
@@ -54,19 +55,129 @@ def teamLikelihood(team_indices, horse_performance):
 	scaled_total = total * len(team_indices)
 	return scaled_total
 
-def nextHorse(candidates, horse_performance):
+def nextHorse(candidates, horse_performance, lst_of_sinks):
 	'''Given candidates, find horse with best performance'''
 	nextHorse = None
 	bestPerformance = -float("inf")
 	for i in candidates:
-		if horse_performance[i] > bestPerformance:
-			bestPerformance = horse_performance[i]
-			nextHorse = i
+
+		# TODO: test out different values of delta and temperature. Maybe we need some other helpers to determine that.
+		# I added the -1.0 because the book is trying to minimize the cost - while we are trying to maximize it.
+		delta = -1.0 * (horse_performance[i] - bestPerformance)
+		temperature = 1.0
+
+		if nextHorse not in lst_of_sinks and i not in lst_of_sinks:
+			# 1. If both are not sinks, use Simulated Annealing to choose the horse
+
+			# First, if i is the better one, we will take it.
+			if horse_performance[i] > bestPerformance:
+				bestPerformance = horse_performance[i]
+				nextHorse = i
+
+			else:
+				# If i is the worse one: Generate a random number. If it is lower than delta/temperature,
+				# then we replace our solution with the worse one, i.
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temperature)
+
+				if rand_num <= prob:
+					bestPerformance = horse_performance[i]
+					nextHorse = i
+
+		elif nextHorse in lst_of_sinks and i in lst_of_sinks:
+			# 2. If both are sinks, use Simulated Annealing but skew it highly to the horse with higher performance.
+
+			temp_temperature = temp * 0.001 # Decrease temperature such that it will skew towards the one with higher performance.
+
+			# First, if i is the better one, we will take it.
+			if horse_performance[i] > bestPerformance:
+				bestPerformance = horse_performance[i]
+				nextHorse = i
+
+			else:
+				# If i is the worse one: Generate a random number. If it is lower than delta/temperature,
+				# then we replace our solution with the worse one, i.
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temp_temperature)
+
+				if rand_num <= prob:
+					bestPerformance = horse_performance[i]
+					nextHorse = i
+
+		elif ( (nextHorse in lst_of_sinks and i not in lst_of_sinks) and (bestPerformance >= horse_performance[i]) ) \
+			or ( (nextHorse not in lst_of_sinks and i in lst_of_sinks) and (bestPerformance <= horse_performance[i]) ):
+			# 3. If A is a sink, B is not, performance(A) > performance(B): use Simulated Annealing
+
+			temp_next_horse = nextHorse
+			temp_best_performance = bestPerformance
+
+			# First, if i is the better one, we will take it.
+			if horse_performance[i] > bestPerformance:
+				bestPerformance = horse_performance[i]
+				nextHorse = i
+
+			# If i is the sink and it has better performance, see if we use simulated annealing to choose it.
+			if i in sink:
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temp_temperature)
+
+				if rand_num <= prob:
+					bestPerformance = horse_performance[i]
+					nextHorse = i
+
+			# Last current choice is the sink and it has better performance. See if we can use simulated annealing to choose it.
+			else:
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temp_temperature)
+
+				if rand_num <= prob:
+					bestPerformance = temp_best_performance
+					nextHorse = temp_next_horse
+
+		elif ( (nextHorse in lst_of_sinks and i not in lst_of_sinks) and (bestPerformance <= horse_performance[i]) ) \
+			or ( (nextHorse not in lst_of_sinks and i in lst_of_sinks) and (bestPerformance >= horse_performance[i]) ):
+			# 4. If A is a sink, B is not, performance(B) > performance(A): use Simulated Annealing, very very highly skewed towards B
+
+			temp_temperature = temp * 0.001 # Decrease temperature such that it will skew towards the one with higher performance.
+			temp_next_horse = nextHorse
+			temp_best_performance = bestPerformance
+
+			# First, if i is the better one, we will take it.
+			if horse_performance[i] > bestPerformance:
+				bestPerformance = horse_performance[i]
+				nextHorse = i
+
+			# If i is the sink and it has worse performance, see if we use simulated annealing to choose it.
+			if i in sink:
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temp_temperature)
+
+				if rand_num <= prob:
+					bestPerformance = horse_performance[i]
+					nextHorse = i
+
+			# Last current choice is the sink and it has worse performance. See if we can use simulated annealing to choose it.
+			else:
+				rand_num = np.random.random_sample()
+				prob = math.exp(-1.0*delta/temp_temperature)
+
+				if rand_num <= prob:
+					bestPerformance = temp_best_performance
+					nextHorse = temp_next_horse
+
+		else:
+			# If none of these cases fits, then we just do what we did before.
+
+			if horse_performance[i] > bestPerformance:
+				bestPerformance = horse_performance[i]
+				nextHorse = i
+
+		temp *= 0.1 # We should make temperature gradually smaller (P.292 in the book)
+
 	return nextHorse
 
 def getValidCandidates(candidates, usedHorses):
 	return np.setdiff1d(candidates, usedHorses)
-
 
 def parseTeams(teams):
 	race_output = ""
@@ -124,18 +235,29 @@ def optimalHorseRacing(in_file):
 		# Remove from consideration horses that have been used
 		candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
 		while len(candidates) > 0:
+
+			# Since now we consider both sinks or non-sinks, I commented out the if branch and modified
+			# the arguments to nextHorse. Now it takes in a list of sinks.
+
 			# If all horses that can go after curr is a sink, then pick sink with best performance
-			if np.all(np.in1d(candidates, sinkIdx)):
-				# curr is horse with best performance
-				curr = nextHorse(candidates, horse_performance)
-				sinkIdx.remove(curr)
-			# Else if there are still non-sinks left, pick horse with best performance
-			else:
-				# Remove sinks from consideration because non-sinks still left
-				candidates = np.setdiff1d(candidates, sinkIdx)
-				# curr is horse with best performance
-				curr = nextHorse(candidates, horse_performance)
-				horseIdx.remove(curr)
+			# if np.all(np.in1d(candidates, sinkIdx)):
+			# 	# curr is horse with best performance
+			# 	curr = nextHorse(candidates, horse_performance)
+			# 	sinkIdx.remove(curr)
+			# # Else if there are still non-sinks left, pick horse with best performance
+			# else:
+			# 	# Remove sinks from consideration because non-sinks still left
+			# 	candidates = np.setdiff1d(candidates, sinkIdx)
+			# 	# curr is horse with best performance
+			# 	curr = nextHorse(candidates, horse_performance)
+			# 	horseIdx.remove(curr)
+
+			# Get the list of sinks for our next horse call.
+			lst_of_sinks = np.setdiff1d(candidates, sinkIdx)
+			# curr is horse with best performance
+			curr = nextHorse(candidates, horse_performance, lst_of_sinks)
+			horseIdx.remove(curr)
+
 			usedHorses.append(curr)
 			team.append(curr)
 			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
