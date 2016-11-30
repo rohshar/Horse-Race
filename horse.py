@@ -112,6 +112,8 @@ def optimalHorseRacing(in_file):
 		if len(sourceIdx) > 0:
 			team.append(sourceIdx.pop())
 			curr = team[0]
+			if curr in sinkIdx:
+				sinkIdx.remove(curr)
 		# If there are no sources left, pick next available horse as the first horse to start in the team
 		elif len(horseIdx) > 0:
 			team.append(horseIdx.pop())
@@ -129,6 +131,8 @@ def optimalHorseRacing(in_file):
 				# curr is horse with best performance
 				curr = nextHorse(candidates, horse_performance)
 				sinkIdx.remove(curr)
+				if curr in sourceIdx:
+					sourceIdx.remove(curr)
 			# Else if there are still non-sinks left, pick horse with best performance
 			else:
 				# Remove sinks from consideration because non-sinks still left
@@ -144,22 +148,22 @@ def optimalHorseRacing(in_file):
 
 
 if __name__ == "__main__":
-	# with open("answers_full_greedy.out", "r+") as ofile, open("perf_full_greedy.out", "r+") as pfile:
-	# 	ofile.truncate()
-	# 	pfile.truncate()
-	# 	all_files = next(os.walk('cs170_final_inputs'))[2]
-	# 	#all_files = next(os.walk('sample_checker'))[2]
-	# 	files = [f for f in all_files if not f.startswith('.')]
-	# 	files.sort(key = lambda x: int(x.split('.')[0]))
-	# 	for f in files:
-	# 		teams = optimalHorseRacing("cs170_final_inputs/" + f)
-	# 		horse_performance, ignore = processInput("cs170_final_inputs/" + f)
-	# 		#teams = optimalHorseRacing("sample_checker/" + f)
-	# 		#horse_performance, ignore = processInput("sample_checker/" + f)
-	# 		perf = totalLikelihood(teams, horse_performance)
-	# 		team_rep = parseTeams(teams)
-	# 		ofile.write(team_rep + "\n")
-	# 		pfile.write(str(perf) + "\n")
+	with open("answers_full_greedy.out", "r+") as ofile, open("perf_full_greedy.out", "r+") as pfile:
+		ofile.truncate()
+		pfile.truncate()
+		all_files = next(os.walk('cs170_final_inputs'))[2]
+		#all_files = next(os.walk('sample_checker'))[2]
+		files = [f for f in all_files if not f.startswith('.')]
+		files.sort(key = lambda x: int(x.split('.')[0]))
+		for f in files:
+			teams = optimalHorseRacing("cs170_final_inputs/" + f)
+			horse_performance, ignore = processInput("cs170_final_inputs/" + f)
+			#teams = optimalHorseRacing("sample_checker/" + f)
+			#horse_performance, ignore = processInput("sample_checker/" + f)
+			perf = totalLikelihood(teams, horse_performance)
+			team_rep = parseTeams(teams)
+			ofile.write(team_rep + "\n")
+			pfile.write(str(perf) + "\n")
 
-	f = 'cs170_final_inputs/19.in'
-	print(optimalHorseRacing(f))
+	#f = 'cs170_final_inputs/38.in'
+	#print(optimalHorseRacing(f))
