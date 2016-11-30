@@ -40,7 +40,7 @@ def totalLikelihood(teams, horse_performance):
 	#calculate total likelihood of winning based on all teams created
 	total = 0
 	for team in teams:
-		total += teamLikelihood(team_indices, horse_performance)
+		total += teamLikelihood(team, horse_performance)
 	return total
 
 
@@ -140,19 +140,26 @@ def optimalHorseRacing(in_file):
 			team.append(curr)
 			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
 		teams.append(team)
-	return parseTeams(teams)
+	return teams
 
 
 if __name__ == "__main__":
-	with open("answers.out", "r+") as ofile:
-		ofile.truncate()
-		#files = os.listdir("cs170_final_inputs")
-		all_files = next(os.walk('sample_checker'))[2]
-		files = [f for f in all_files if not f.startswith('.')]
-		for f in files:
-			#team_rep = optimalHorseRacing("cs170_final_inputs/" + f)
-			team_rep = optimalHorseRacing("sample_checker/" + f)
-			ofile.write(team_rep + "\n")
+	# with open("answers_full_greedy.out", "r+") as ofile, open("perf_full_greedy.out", "r+") as pfile:
+	# 	ofile.truncate()
+	# 	pfile.truncate()
+	# 	all_files = next(os.walk('cs170_final_inputs'))[2]
+	# 	#all_files = next(os.walk('sample_checker'))[2]
+	# 	files = [f for f in all_files if not f.startswith('.')]
+	# 	files.sort(key = lambda x: int(x.split('.')[0]))
+	# 	for f in files:
+	# 		teams = optimalHorseRacing("cs170_final_inputs/" + f)
+	# 		horse_performance, ignore = processInput("cs170_final_inputs/" + f)
+	# 		#teams = optimalHorseRacing("sample_checker/" + f)
+	# 		#horse_performance, ignore = processInput("sample_checker/" + f)
+	# 		perf = totalLikelihood(teams, horse_performance)
+	# 		team_rep = parseTeams(teams)
+	# 		ofile.write(team_rep + "\n")
+	# 		pfile.write(str(perf) + "\n")
 
-	#f = "sample1.in"
-	#print(optimalHorseRacing(f))
+	f = 'cs170_final_inputs/19.in'
+	print(optimalHorseRacing(f))
