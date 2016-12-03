@@ -244,21 +244,21 @@ def optimalHorseRacing2(in_file):
 
 if __name__ == "__main__":
         counter = 1
-        with open("answers_small_greedy_random100.out", "r+") as ofile, open("perf_small_greedy_random100.out", "r+") as pfile:
+        with open("answers_full_random.out", "r+") as ofile, open("perf_full_random.out", "r+") as pfile:
         #with open("answers_small_greedy.out", "r+") as ofile, open("perf_small_greedy.out", "r+") as pfile:
         #with open("answers_full_greedy.out", "r+") as ofile, open("perf_full_greedy.out", "r+") as pfile:
                 ofile.truncate()
                 pfile.truncate()
-                #all_files = next(os.walk('cs170_final_inputs'))[2]
-                all_files = next(os.walk('sample_checker'))[2]
+                all_files = next(os.walk('cs170_final_inputs'))[2]
+                #all_files = next(os.walk('sample_checker'))[2]
                 files = [f for f in all_files if not f.startswith('.')]
                 files.sort(key = lambda x: int(x.split('.')[0]))
                 for f in files:
                         print(counter)
-                        #teams = optimalHorseRacing("cs170_final_inputs/" + f)
-                        #horse_performance, ignore = processInput("cs170_final_inputs/" + f)
-                        perf, teams = optimalHorseRacing2("sample_checker/" + f)
-                        horse_performance, ignore = processInput("sample_checker/" + f)
+                        perf, teams = optimalHorseRacing2("cs170_final_inputs/" + f)
+                        horse_performance, ignore = processInput("cs170_final_inputs/" + f)
+                        #perf, teams = optimalHorseRacing2("sample_checker/" + f)
+                        #horse_performance, ignore = processInput("sample_checker/" + f)
                         team_rep = parseTeams(teams)
                         ofile.write(team_rep + "\n")
                         pfile.write(str(perf) + "\n")
