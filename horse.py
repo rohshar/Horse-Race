@@ -89,140 +89,140 @@ def parseTeams(teams):
 
 # [MICHAEL] Almost the same as OPTIMALHORSERACING1 except with a random factor EPS
 def randomizedSolution(horse_performance, horse_compatibilities, eps):
-	# Find source and sink IDs respectively
-	sourceIdx = findSource(horse_compatibilities)
-	sinkIdx = findSink(horse_compatibilities)
+        # Find source and sink IDs respectively
+        sourceIdx = findSource(horse_compatibilities)
+        sinkIdx = findSink(horse_compatibilities)
 
-	# Represent each horse by its index
-	horseIdx = set(range(len(horse_compatibilities)))
+        # Represent each horse by its index
+        horseIdx = set(range(len(horse_compatibilities)))
 
-	# Remove sinks from horseIdx
-	horseIdx = horseIdx.difference(sinkIdx)
+        # Remove sinks from horseIdx
+        horseIdx = horseIdx.difference(sinkIdx)
 
-	# Remove sources from horseIdx	
-	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
+        # Remove sources from horseIdx  
+        horseIdx = collections.deque(horseIdx.difference(sourceIdx))
 
-	# Convert horse_compatibilities to adjacency matrix
-	horse_compatibilities = adjacencyMatrix(horse_compatibilities)
+        # Convert horse_compatibilities to adjacency matrix
+        horse_compatibilities = adjacencyMatrix(horse_compatibilities)
 
-	teams = []
-	usedHorses = []
-	sourceIdx = list(sourceIdx)
-	sinkIdx = list(sinkIdx)
-	# While there are still unassigned horses left
-	while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
-		team = []
-		# If there are sources, use them as starting horse in the team. curr denotes current horse
+        teams = []
+        usedHorses = []
+        sourceIdx = list(sourceIdx)
+        sinkIdx = list(sinkIdx)
+        # While there are still unassigned horses left
+        while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
+                team = []
+                # If there are sources, use them as starting horse in the team. curr denotes current horse
                 # [MICHAEl] Choices of start node for a team are made randomly drawing from the appropriate set
                 # (sourceIdx, horseIdx, or sinkIdx)
-		if len(sourceIdx) > 0:
-			#team.append(sourceIdx.pop())
+                if len(sourceIdx) > 0:
+                        #team.append(sourceIdx.pop())
                         team.append(sourceIdx[random.randrange(0, len(sourceIdx))])
-			curr = team[0]
+                        curr = team[0]
                         sourceIdx.remove(curr)
-			if curr in sinkIdx:
-				sinkIdx.remove(curr)
-		# If there are no sources left, pick next available horse as the first horse to start in the team
-		elif len(horseIdx) > 0:
-			#team.append(horseIdx.pop())
+                        if curr in sinkIdx:
+                                sinkIdx.remove(curr)
+                # If there are no sources left, pick next available horse as the first horse to start in the team
+                elif len(horseIdx) > 0:
+                        #team.append(horseIdx.pop())
                         team.append(horseIdx[random.randrange(0, len(horseIdx))])
-			curr = team[0]
+                        curr = team[0]
                         horseIdx.remove(curr)
-		# If sinks are the only horses left, then form team with sinks
-		else:
-			#team.append(sinkIdx.pop())
+                # If sinks are the only horses left, then form team with sinks
+                else:
+                        #team.append(sinkIdx.pop())
                         team.append(sinkIdx[random.randrange(0, len(sinkIdx))])
-			curr = team[0]
+                        curr = team[0]
                         sinkIdx.remove(curr)
-		usedHorses.append(curr)
-		# Remove from consideration horses that have been used
-		candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
-		while len(candidates) > 0:
-			# If all horses that can go after curr is a sink, then pick sink with best performance
-			if np.all(np.in1d(candidates, sinkIdx)):
-				# curr is horse with best performance, most of the time
-				curr = nextHorse(candidates, horse_performance, eps)
-				sinkIdx.remove(curr)
-				if curr in sourceIdx:
-					sourceIdx.remove(curr)
-			# Else if there are still non-sinks left, pick horse with best performance
-			else:
-				# Remove sinks from consideration because non-sinks still left
-				candidates = np.setdiff1d(candidates, sinkIdx)
-				# curr is horse with best performance, most of the time
-				curr = nextHorse(candidates, horse_performance, eps)
-				horseIdx.remove(curr)
-			usedHorses.append(curr)
-			team.append(curr)
-			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
-		teams.append(team)
-	return teams
+                usedHorses.append(curr)
+                # Remove from consideration horses that have been used
+                candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
+                while len(candidates) > 0:
+                        # If all horses that can go after curr is a sink, then pick sink with best performance
+                        if np.all(np.in1d(candidates, sinkIdx)):
+                                # curr is horse with best performance, most of the time
+                                curr = nextHorse(candidates, horse_performance, eps)
+                                sinkIdx.remove(curr)
+                                if curr in sourceIdx:
+                                        sourceIdx.remove(curr)
+                        # Else if there are still non-sinks left, pick horse with best performance
+                        else:
+                                # Remove sinks from consideration because non-sinks still left
+                                candidates = np.setdiff1d(candidates, sinkIdx)
+                                # curr is horse with best performance, most of the time
+                                curr = nextHorse(candidates, horse_performance, eps)
+                                horseIdx.remove(curr)
+                        usedHorses.append(curr)
+                        team.append(curr)
+                        candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
+                teams.append(team)
+        return teams
         
 # The nonrandom, greedy version
 def optimalHorseRacing1(in_file):
-	#call helper function to get relevant information in accessible format
-	horse_performance, horse_compatibilities = processInput(in_file)
+        #call helper function to get relevant information in accessible format
+        horse_performance, horse_compatibilities = processInput(in_file)
 
-	# Find source and sink IDs respectively
-	sourceIdx = findSource(horse_compatibilities)
-	sinkIdx = findSink(horse_compatibilities)
+        # Find source and sink IDs respectively
+        sourceIdx = findSource(horse_compatibilities)
+        sinkIdx = findSink(horse_compatibilities)
 
-	# Represent each horse by its index
-	horseIdx = set(range(len(horse_compatibilities)))
+        # Represent each horse by its index
+        horseIdx = set(range(len(horse_compatibilities)))
 
-	# Remove sinks from horseIdx
-	horseIdx = horseIdx.difference(sinkIdx)
+        # Remove sinks from horseIdx
+        horseIdx = horseIdx.difference(sinkIdx)
 
-	# Remove sources from horseIdx	
-	horseIdx = collections.deque(horseIdx.difference(sourceIdx))
+        # Remove sources from horseIdx  
+        horseIdx = collections.deque(horseIdx.difference(sourceIdx))
 
-	# Convert horse_compatibilities to adjacency matrix
-	horse_compatibilities = adjacencyMatrix(horse_compatibilities)
+        # Convert horse_compatibilities to adjacency matrix
+        horse_compatibilities = adjacencyMatrix(horse_compatibilities)
 
-	teams = []
-	usedHorses = []
-	sourceIdx = list(sourceIdx)
-	sinkIdx = list(sinkIdx)
-	# While there are still unassigned horses left
-	while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
-		team = []
-		# If there are sources, use them as starting horse in the team. curr denotes current horse
-		if len(sourceIdx) > 0:
-			team.append(sourceIdx.pop())
-			curr = team[0]
-			if curr in sinkIdx:
-				sinkIdx.remove(curr)
-		# If there are no sources left, pick next available horse as the first horse to start in the team
-		elif len(horseIdx) > 0:
-			team.append(horseIdx.pop())
-			curr = team[0]
-		# If sinks are the only horses left, then form team with sinks
-		else:
-			team.append(sinkIdx.pop())
-			curr = team[0]
-		usedHorses.append(curr)
-		# Remove from consideration horses that have been used
-		candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
-		while len(candidates) > 0:
-			# If all horses that can go after curr is a sink, then pick sink with best performance
-			if np.all(np.in1d(candidates, sinkIdx)):
-				# curr is horse with best performance
-				curr = nextHorse(candidates, horse_performance, 0)
-				sinkIdx.remove(curr)
-				if curr in sourceIdx:
-					sourceIdx.remove(curr)
-			# Else if there are still non-sinks left, pick horse with best performance
-			else:
-				# Remove sinks from consideration because non-sinks still left
-				candidates = np.setdiff1d(candidates, sinkIdx)
-				# curr is horse with best performance
-				curr = nextHorse(candidates, horse_performance, 0)
-				horseIdx.remove(curr)
-			usedHorses.append(curr)
-			team.append(curr)
-			candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
-		teams.append(team)
-	return totalLikelihood(teams, horse_performance), teams
+        teams = []
+        usedHorses = []
+        sourceIdx = list(sourceIdx)
+        sinkIdx = list(sinkIdx)
+        # While there are still unassigned horses left
+        while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
+                team = []
+                # If there are sources, use them as starting horse in the team. curr denotes current horse
+                if len(sourceIdx) > 0:
+                        team.append(sourceIdx.pop())
+                        curr = team[0]
+                        if curr in sinkIdx:
+                                sinkIdx.remove(curr)
+                # If there are no sources left, pick next available horse as the first horse to start in the team
+                elif len(horseIdx) > 0:
+                        team.append(horseIdx.pop())
+                        curr = team[0]
+                # If sinks are the only horses left, then form team with sinks
+                else:
+                        team.append(sinkIdx.pop())
+                        curr = team[0]
+                usedHorses.append(curr)
+                # Remove from consideration horses that have been used
+                candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
+                while len(candidates) > 0:
+                        # If all horses that can go after curr is a sink, then pick sink with best performance
+                        if np.all(np.in1d(candidates, sinkIdx)):
+                                # curr is horse with best performance
+                                curr = nextHorse(candidates, horse_performance, 0)
+                                sinkIdx.remove(curr)
+                                if curr in sourceIdx:
+                                        sourceIdx.remove(curr)
+                        # Else if there are still non-sinks left, pick horse with best performance
+                        else:
+                                # Remove sinks from consideration because non-sinks still left
+                                candidates = np.setdiff1d(candidates, sinkIdx)
+                                # curr is horse with best performance
+                                curr = nextHorse(candidates, horse_performance, 0)
+                                horseIdx.remove(curr)
+                        usedHorses.append(curr)
+                        team.append(curr)
+                        candidates = getValidCandidates(horse_compatibilities[curr], usedHorses)
+                teams.append(team)
+        return totalLikelihood(teams, horse_performance), teams
 
 # The random, greedy version. Essentially we introduce randomness and run a bunch of times,
 # taking the best result of those runs
@@ -231,7 +231,7 @@ def optimalHorseRacing2(in_file):
 
         num_runs = 50
         best_teams = []
-        best_teams_val = 0
+        best_teams_val = -1
         for i in range(num_runs):
                 curr_teams = randomizedSolution(horse_performance, horse_compatibilities, 0.2)
                 curr_teams_val = totalLikelihood(curr_teams, horse_performance)
@@ -245,8 +245,6 @@ def optimalHorseRacing2(in_file):
 if __name__ == "__main__":
         counter = 1
         with open("answers_full_random.out", "r+") as ofile, open("perf_full_random.out", "r+") as pfile:
-        #with open("answers_small_greedy.out", "r+") as ofile, open("perf_small_greedy.out", "r+") as pfile:
-        #with open("answers_full_greedy.out", "r+") as ofile, open("perf_full_greedy.out", "r+") as pfile:
                 ofile.truncate()
                 pfile.truncate()
                 all_files = next(os.walk('cs170_final_inputs'))[2]
@@ -267,10 +265,10 @@ if __name__ == "__main__":
 
         '''
 
-        f = 'sample_checker/15.in'
-        #f = 'sample2.in'
+        #f = 'sample_checker/15.in'
+        f = '289.in'
         val1, teams1 = optimalHorseRacing1(f)
-        val2, teams2 = optimalHorseRacing2(f)        
+        val2, teams2 = optimalHorseRacing2(f)
+        pdb.set_trace()
         print("val1: " + str(val1) + ", val2: " + str(val2))
         '''
-
