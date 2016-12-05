@@ -36,6 +36,7 @@ def adjacencyMatrix(mat):
         for i in range(mat.shape[0]):
                 # Find j corresponding for where mat[i][j] = 1
                 adjMat[i] = np.where(mat[i] == 1)[0]
+
         return adjMat
 
 def totalLikelihood(teams, horse_performance):
@@ -241,22 +242,174 @@ def optimalHorseRacing2(in_file):
                 
         return best_teams_val, best_teams
 
+# The longest path approach
+def optimalHorseRacing3(in_file):
+        # Call helper function to get relevant information in accessible format
+        horse_performance, horse_compatibilities = processInput(in_file)
+
+        # Find source and sink IDs respectively
+        sourceIdx = findSource(horse_compatibilities)
+        sinkIdx = findSink(horse_compatibilities)
+
+        # Represent each horse by its index
+        horseIdx = set(range(len(horse_compatibilities)))
+
+        # Remove sinks from horseIdx
+        horseIdx = horseIdx.difference(sinkIdx)
+
+        # Remove sources from horseIdx  
+        horseIdx = collections.deque(horseIdx.difference(sourceIdx))
+
+        # Convert horse_compatibilities to adjacency matrix
+        horse_compatibilities = adjacencyMatrix(horse_compatibilities)
+
+        teams = []
+        usedHorses = []
+        sourceIdx = list(sourceIdx)
+        sinkIdx = list(sinkIdx)
+        removedNodes = set()
+
+        # While there are still unassigned horses left
+        while len(horseIdx) > 0 or len(sourceIdx) > 0 or len(sinkIdx) > 0:
+
+                # New Code
+
+                print "hi"
+
+                # print horse_compatibilities
+
+                # If there are sources, use them as starting horse to find the longest path for. Use our helper which returns
+                # the longest path and the resulting new graph with all nodes on the path removed. Starting from horse is the same.
+                # Except we pick a different list of starting nodes
+                if len(sourceIdx) > 0 or len(horseIdx) > 0:
+
+                        if len(sourceIdx) > 0:
+                                startingNodesForLongestPaths = list(sourceIdx)[:]
+                        else:
+                                # If there are no sources left, use the next available horses as the first horse as the first horse
+                                # in the longest path. Use our helper which returns the longest path and the resulting new graph 
+                                # with all nodes on the path removed.
+                                startingNodesForLongestPaths = list(horseIdx)[:]
+
+                        team, resultingGraph = findLongestPath(startingNodesForLongestPaths, horse_compatibilities)
+
+                        # Record which nodes are being removed. Then, we will remove those nodes in our horseIdx/srcIdx/sinkIdx lists
+                        for node in team:
+                                removedNodes.add(node)
+
+                        # Update horseIdx, sourceIdx, sinkIdx
+                        sourceIdx = findSource(resultingGraph)
+                        sinkIdx = findSink(resultingGraph)
+                        horseIdx = set(range(len(horse_compatibilities)))
+                        horseIdx = (horseIdx - sourceIdx) - sinkIdx
+
+                        # Remove all the nodes that are on the path we found
+                        for node in removedNodes:
+                                if node in sourceIdx:
+                                    sourceIdx.remove(node)
+
+                                if node in sinkIdx:
+                                    sinkIdx.remove(node)
+
+                                if node in horseIdx:
+                                    horseIdx.remove(node)
+
+                        horse_compatibilities = adjacencyMatrix(resultingGraph)
+
+                        sourceIdx = list(sourceIdx)
+                        sinkIdx = list(sinkIdx)
+                        horseIdx = list(horseIdx)
+
+                # If sinks are the only horses left, then form team with sinks
+                else:
+                        team.append(sinkIdx.pop())
+
+                teams.append(team)
+
+        return totalLikelihood(teams, horse_performance), teams
+
+def findLongestPath(startingNodesForLongestPaths, horse_compatibilities):
+
+        # Use DFS to find all paths reachable from the starting nodes.
+
+        allLongestPaths = []
+
+        for cur_node in startingNodesForLongestPaths:
+
+                possiblePaths = []
+
+                # Make a visited array to represent if the node has been visited before
+                visited = set()
+
+                # Have a stack to keep track of all the paths we have found so far
+                pathStack = [[cur_node]]
+
+                while pathStack:
+                        cur_path = pathStack.pop()
+
+                        last_node = cur_path[len(cur_path) - 1]
+
+                        if last_node in visited: 
+                                continue
+
+                        # Add this path to the list of all possible paths
+                        possiblePaths.append(cur_path)
+
+                        # Mark the last node on the path as visited
+                        visited.add(last_node)
+
+                        # Get a list of unvisited and reachable nodes from the last node on the current path
+                        nextPossibleNodes = horse_compatibilities[last_node][:]
+
+                        # Append all possible next nodes to the current path we have. Push it onto the stack.
+                        for node in nextPossibleNodes:
+                                new_path = cur_path[:] + [node]
+                                pathStack.append(new_path)
+
+                # Sort this list of paths. Longest path is in the front
+                sorted_lst_by_length = sorted(possiblePaths, key=lambda lst: -len(lst))
+
+                # Get the longest path
+                allLongestPaths.append(sorted_lst_by_length[0])
+
+        allLongestPathsSorted = sorted(allLongestPaths, key=lambda lst: -len(lst))
+
+        resultingGraphRemovedNodes = removingNodesOnPath(allLongestPathsSorted[0], horse_compatibilities)
+
+        return allLongestPathsSorted[0], resultingGraphRemovedNodes
+
+def removingNodesOnPath(path, horse_compatibilities):
+        # Reconstruct the matrix
+        new_matrix = [[0]*len(horse_compatibilities)]*len(horse_compatibilities)
+
+        for node in path:
+                # Mark the row for the node as removed
+                new_matrix[node] = [0]*len(horse_compatibilities)
+
+                # Mark the col for the node as removed
+                for i in xrange(0, len(horse_compatibilities)):
+                        new_matrix[i][node] = 0
+
+        return np.array(new_matrix)
 
 if __name__ == "__main__":
         counter = 1
-        with open("answers_full_random.out", "r+") as ofile, open("perf_full_random.out", "r+") as pfile:
+        with open("answers_small_longest_path.out", "r+") as ofile, open("perf_small_longest_path.out", "r+") as pfile:
                 ofile.truncate()
                 pfile.truncate()
-                all_files = next(os.walk('cs170_final_inputs'))[2]
-                #all_files = next(os.walk('sample_checker'))[2]
+                # all_files = next(os.walk('cs170_final_inputs'))[2]
+                all_files = next(os.walk('sample_checker'))[2]
                 files = [f for f in all_files if not f.startswith('.')]
                 files.sort(key = lambda x: int(x.split('.')[0]))
+
                 for f in files:
+                        if f != "7.in": continue
                         print(counter)
-                        perf, teams = optimalHorseRacing2("cs170_final_inputs/" + f)
-                        horse_performance, ignore = processInput("cs170_final_inputs/" + f)
-                        #perf, teams = optimalHorseRacing2("sample_checker/" + f)
-                        #horse_performance, ignore = processInput("sample_checker/" + f)
+                        print f
+                        # perf, teams = optimalHorseRacing2("cs170_final_inputs/" + f)
+                        # horse_performance, ignore = processInput("cs170_final_inputs/" + f)
+                        perf, teams = optimalHorseRacing3("sample_checker/" + f)
+                        horse_performance, ignore = processInput("sample_checker/" + f)
                         team_rep = parseTeams(teams)
                         ofile.write(team_rep + "\n")
                         pfile.write(str(perf) + "\n")
