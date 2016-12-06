@@ -416,10 +416,10 @@ def removingNodesOnPath(path, horse_compatibilities):
 
 if __name__ == "__main__":
         counter = 1
-        with open("answers_opt2_and_3_hayden_part.out", "r+") as ofile, open("perf_opt2_and_3_hayden_part.out", "r+") as pfile:
+        with open("answers_opt2_and_3_Michael_434_439.out", "r+") as ofile, open("perf_opt2_and_3_Michael_434_439.out", "r+") as pfile:
                 ofile.truncate()
                 pfile.truncate()
-                all_files = next(os.walk('cs170_final_inputs_hayden'))[2]
+                all_files = next(os.walk('cs170_final_inputs_434_439'))[2]
                 # all_files = next(os.walk('sample_checker'))[2]
                 files = [f for f in all_files if not f.startswith('.')]
                 files.sort(key = lambda x: int(x.split('.')[0]))
@@ -428,11 +428,11 @@ if __name__ == "__main__":
 
                         print(counter)
                         print f
-                        perf2, teams2 = optimalHorseRacing2("cs170_final_inputs_hayden/" + f)
-                        horse_performance, ignore = processInput("cs170_final_inputs_hayden/" + f)
+                        perf2, teams2 = optimalHorseRacing2("cs170_final_inputs_434_439/" + f)
+                        horse_performance, ignore = processInput("cs170_final_inputs_434_439/" + f)
 
-                        perf3, teams3 = optimalHorseRacing3("cs170_final_inputs_hayden/" + f)
-                        horse_performance, ignore = processInput("cs170_final_inputs_hayden/" + f)
+                        perf3, teams3 = optimalHorseRacing3("cs170_final_inputs_434_439/" + f)
+                        horse_performance, ignore = processInput("cs170_final_inputs_434_439/" + f)
 
                         # perf2, teams2 = optimalHorseRacing2("sample_checker/" + f)
                         # horse_performance, ignore = processInput("sample_checker/" + f)
